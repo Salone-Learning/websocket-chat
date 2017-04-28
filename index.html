@@ -6,17 +6,60 @@
         form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
         form input { border: 0; padding: 10px; width: 90%; }
         form button { width: 10%; box-sizing: border-box; padding: 10px; }
+        label { font: 12px Helvetica, Arial; background: #ff9; margin: 50px 50px 50px 50px; }
+
+        li.user-message { color: darkgrey }
+        li.self-message { color: black }
+        li.internal-message { color: red }
+
         #messages { list-style-type: none; margin: 0; padding: 0; }
         #messages li { padding: 5px 10px; }
         #messages li:nth-child(odd)
     </style>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery.js"></script>
     <script>
-        var socket = io();
+        $(function () {
+            var timer;
+            var socket = io();
+            $('form').submit(function(){
+                socket.emit('message', $('#current').val());
+                $('#messages').append($('<li class="self-message">').text('You: ' + $('#current').val()));
+                window.scrollTo(0, document.body.scrollHeight);
+
+                $('#current').val('');
+
+                return false;
+            });
+
+            $('#current').keypress(function() {
+                socket.emit('typing', '');
+            });
+
+            socket.on('message', function(msg){
+                $('#messages').append($('<li class="user-message">').text('User: ' + msg));
+                window.scrollTo(0, document.body.scrollHeight);
+
+                clearTimeout(timer);
+                $('#warning').text('')
+            });
+
+            socket.on('system', function(msg){
+                $('#messages').append($('<li class="internal-message">').text('System: ' + msg));
+                window.scrollTo(0, document.body.scrollHeight);
+            });
+
+            socket.on('typing', function(msg){
+                $('#warning').text('User is typing...');
+                clearTimeout(timer);
+                timer = setTimeout(function(){$('#warning').text('')}, 5000);
+            });
+        });
     </script>
 </head>
 <body>
 <ul id="messages"></ul>
+<label id="warning"></label>
 <form action="">
     <input id="current" autocomplete="off" /><button>Send</button>
 </form>
