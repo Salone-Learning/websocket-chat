@@ -22,9 +22,16 @@
         $(function () {
             var timer;
             var socket = io();
+
+            while(!name){
+                var name = prompt("Please enter your name", "");
+            };
+
+            socket.emit('login', name);
+
             $('form').submit(function(){
-                socket.emit('message', $('#current').val());
-                $('#messages').append($('<li class="self-message">').text('You: ' + $('#current').val()));
+                socket.emit('message', name + ":" + $('#current').val());
+                $('#messages').append($('<li class="self-message">').text(name + ': ' + $('#current').val()));
                 window.scrollTo(0, document.body.scrollHeight);
 
                 $('#current').val('');
@@ -33,11 +40,15 @@
             });
 
             $('#current').keypress(function() {
-                socket.emit('typing', '');
+                socket.emit('typing', name);
             });
 
             socket.on('message', function(msg){
-                $('#messages').append($('<li class="user-message">').text('User: ' + msg));
+                var values = msg.split(":")
+                var user = values[0]
+                var message = values[1]
+
+                $('#messages').append($('<li class="user-message">').text(user + ': ' + message));
                 window.scrollTo(0, document.body.scrollHeight);
 
                 clearTimeout(timer);
@@ -50,7 +61,9 @@
             });
 
             socket.on('typing', function(msg){
-                $('#warning').text('User is typing...');
+                var user = msg
+
+                $('#warning').text(user + ' is typing...');
                 clearTimeout(timer);
                 timer = setTimeout(function(){$('#warning').text('')}, 5000);
             });
