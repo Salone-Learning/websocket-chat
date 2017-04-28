@@ -1,0 +1,8 @@
+{
+  "name": "websocket-chat",
+  "version": "0.0.1",
+  "description": "A sample chat application using web socket and Node.JS",
+  "dependencies": {
+    "express": "^4.15.2"
+  }
+}
